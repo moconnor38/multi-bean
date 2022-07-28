@@ -20,3 +20,24 @@ jobs:
 
       - run: docker build -t momconnor38/multi-client ./client
       - run: docker push momconnor38/multi-client
+      - run: docker build -t momconnor38/multi-nginx ./nginx
+      - run: docker push momconnor38/multi-nginx
+      - run: docker build -t momconnor38/multi-server ./server
+      - run: docker push momconnor38/multi-server
+      - run: docker build -t momconnor38/multi-worker ./worker
+      - run: docker push momconnor38/multi-worker
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+  
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: multi-bean
+          environment_name: Multibean-env
+          existing_bucket_name: elasticbeanstalk-eu-west-1-965051556300
+          region: eu-west-1
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
